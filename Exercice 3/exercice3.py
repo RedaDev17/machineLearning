@@ -50,37 +50,45 @@ def regression(x_train, y_train, x_test, y_test):
 
 def svm(x_train, y_train, x_test, y_test):
     c_range = np.logspace(-1, 1, 3)
-    gamma_value = np.logspace(-1, 1, 3)
-    parameters_struct = {
+    gamma_range = np.logspace(-1, 1, 3)
+
+    param_grid = {
         "C": c_range,
         "kernel": ['rbf', 'poly'],
-        "gamma": gamma_value.tolist()+['scale', 'auto']
+        "gamma": gamma_range.tolist()+['scale', 'auto']
     }
+
     scoring = ['accuracy']
 
     kfold = StratifiedKFold(n_splits=3, shuffle=True, random_state=0)
-    struct_search = GridSearchCV(estimator=SVC(),
-                               parameters_struct=parameters_struct,
+
+    grid_search = GridSearchCV(estimator=SVC(),
+                               param_grid=param_grid,
                                scoring=scoring,
                                refit='accuracy',
                                n_jobs=1,
                                cv=kfold,
                                verbose=0)
-    struct_result = struct_search.fit(x_train, y_train)
-    print(f"The best accuracy score for training dataset is {struct_result.best_score_:.4f}")
-    print(f"The best hyperparameter are {struct_result.best_params_}")
-    print(f"The accuracy score for the testing dataset is {struct_search.score(x_test, y_test):.4f}")
+
+    grid_result = grid_search.fit(x_train, y_train)
+
+    print(f"The best accuracy score for training dataset is {grid_result.best_score_:.4f}")
+    print(f"The best hyperparameter are {grid_result.best_params_}")
+    print(f"The accuracy score for the testing dataset is {grid_search.score(x_test, y_test):.4f}")
 
 def main():
-    inputs = np.load("inputs.npy")
-    labels = np.load("labels.npy")
+    inputs = np.load("inputs.npy")  # refer to x
+    labels = np.load("labels.npy")  # refer to y
+
     train_inputs, test_inputs = inputs[:450], inputs[450:]
     train_labels, test_labels = labels[:450], labels[450:]
     train_labels = train_labels.reshape(450)
 
     print("\t\t\t\tLogisitic Regression model\n")
     regression(train_inputs, train_labels, test_inputs, test_labels)
+
     print()
+
     print("\t\t\t\tSupport Vector Model (SVM)\n")
     svm(train_inputs, train_labels, test_inputs, test_labels)
 
